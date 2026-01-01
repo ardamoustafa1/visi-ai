@@ -1,0 +1,229 @@
+/* Study Reminder Modal Styles */
+
+.reminder-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.reminder-modal {
+    background: rgba(15, 15, 35, 0.98);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    padding: 1.5rem;
+}
+
+.reminder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.reminder-header h2 {
+    font-size: 1.1rem;
+    color: #e2e8f0;
+    margin: 0;
+}
+
+/* Permission Warning */
+.permission-warning {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: #ef4444;
+}
+
+/* Toggle Section */
+.reminder-toggle-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.toggle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.toggle-label {
+    font-size: 0.95rem;
+    color: #e2e8f0;
+    font-weight: 500;
+}
+
+.toggle-desc {
+    font-size: 0.75rem;
+    color: #718096;
+}
+
+.toggle-btn {
+    width: 50px;
+    height: 28px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.toggle-btn.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.toggle-circle {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: white;
+    transition: all 0.3s;
+}
+
+.toggle-btn.active .toggle-circle {
+    left: 25px;
+}
+
+/* Sections */
+.reminder-section {
+    margin-bottom: 1rem;
+}
+
+.reminder-section label {
+    display: block;
+    font-size: 0.85rem;
+    color: #a0aec0;
+    margin-bottom: 0.5rem;
+}
+
+.time-input {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 1rem;
+    outline: none;
+}
+
+.time-input:focus {
+    border-color: #667eea;
+}
+
+/* Days Grid */
+.days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+}
+
+.day-btn {
+    padding: 0.5rem 0.25rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #718096;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.day-btn:hover {
+    background: rgba(102, 126, 234, 0.1);
+    color: #a0aec0;
+}
+
+.day-btn.selected {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-color: transparent;
+    color: white;
+}
+
+/* Message Input */
+.message-input {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    resize: none;
+    outline: none;
+}
+
+.message-input:focus {
+    border-color: #667eea;
+}
+
+/* Test Button */
+.test-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(102, 126, 234, 0.2);
+    border: 1px solid rgba(102, 126, 234, 0.3);
+    border-radius: 8px;
+    color: #667eea;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 1rem;
+}
+
+.test-btn:hover:not(:disabled) {
+    background: rgba(102, 126, 234, 0.3);
+}
+
+.test-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.test-btn.sent {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #10b981;
+}
+
+/* Info */
+.reminder-info {
+    padding: 0.75rem;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 8px;
+}
+
+.reminder-info p {
+    margin: 0.25rem 0;
+    font-size: 0.75rem;
+    color: #a0aec0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .days-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
