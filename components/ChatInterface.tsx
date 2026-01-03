@@ -204,13 +204,36 @@ export default function ChatInterface({ studentData }: ChatInterfaceProps) {
                     history,
                     image: imageToSend,
                     studentContext: studentInfo,
-                    studentData: studentData // Öğrenci verisini her mesajda gönder
+                    studentData: studentData, // Öğrenci verisini her mesajda gönder
+                    forced_mod: currentMod // Seçili modu zorla
                 }),
             });
 
             const data = await response.json();
 
             if (data.error) throw new Error(data.error);
+
+            // Mod değişikliği bildirimi
+            const previousMod = currentMod;
+            const newMod = data.mod as ModType;
+
+            if (previousMod && newMod && previousMod !== newMod) {
+                const modTransitionMessages: Record<ModType, string> = {
+                    'academic': '📚 Akademik Koç moduna geçtim. Çalışma planı ve hedeflerine odaklanıyorum.',
+                    'focus-anxiety': '🧘 Odak & Kaygı moduna geçtim. Önce seni rahatlatalım, sonra devam ederiz.',
+                    'motivation-discipline': '⭐ Motivasyon moduna geçtim. Birlikte küçük adımlarla ilerleyeceğiz.',
+                    'career-direction': '🧭 Gelişim Yönü moduna geçtim. Güçlü yanlarını keşfedelim.',
+                    'safe-support': '💙 Güvenli Destek moduna geçtim. Yanındayım.'
+                };
+
+                const transitionMessage: Message = {
+                    id: (Date.now() + 0.5).toString(),
+                    role: 'model',
+                    content: `**[Mod Değişikliği]**\n\n${modTransitionMessages[newMod]}`,
+                    mod: newMod
+                };
+                setMessages((prev) => [...prev, transitionMessage]);
+            }
 
             const botMessage: Message = {
                 id: (Date.now() + 1).toString(),
@@ -300,33 +323,36 @@ export default function ChatInterface({ studentData }: ChatInterfaceProps) {
                             {/* Header */}
                             <div className="panel-header">
                                 <h3>📊 Veri Özeti</h3>
-                                <span className="student-name">{studentData.name}</span>
-                                <div className="student-meta">
-                                    <span className="exam-badge">{studentData.targetExam}</span>
-                                    <span className="grade-badge">{studentData.grade}. Sınıf</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span className="student-name" style={{ fontSize: '1.2rem', margin: 0 }}>{studentData.name}</span>
+                                    <div className="student-meta" style={{ marginBottom: 0 }}>
+                                        <span className="exam-badge">{studentData.targetExam}</span>
+                                        <span className="grade-badge">{studentData.grade}. Sınıf</span>
+                                    </div>
                                 </div>
+
                                 {/* Yeni Özellik Butonları */}
-                                <div className="panel-actions">
+                                <div className="panel-actions" style={{ marginTop: '1rem' }}>
                                     <button
                                         className="action-btn chart-btn"
                                         onClick={() => setShowProgressChart(true)}
                                         title="İlerleme Grafikleri"
                                     >
-                                        📈
+                                        📈 Grafik
                                     </button>
                                     <button
                                         className="action-btn reminder-btn"
                                         onClick={() => setShowReminder(true)}
                                         title="Hatırlatıcı Ayarla"
                                     >
-                                        🔔
+                                        🔔 Hatırlat
                                     </button>
                                 </div>
                             </div>
 
                             {/* Haftalık Özet İstatistikler */}
                             <div className="data-section weekly-summary">
-                                <h4>📅 Son 7 Gün Özeti</h4>
+                                <h4>📅 Son Durum</h4>
                                 <div className="summary-stats">
                                     <div className="summary-item">
                                         <span className="summary-value">{studentData.recentExams?.length || 0}</span>
@@ -342,8 +368,8 @@ export default function ChatInterface({ studentData }: ChatInterfaceProps) {
                                         {(() => {
                                             const exams = studentData.recentExams || [];
                                             if (exams.length >= 2) {
-                                                const diff = exams[0].totalNet - exams[exams.length - 1].totalNet;
-                                                const isUp = diff > 0;
+                                                const diff = (exams[0].totalNet || 0) - (exams[exams.length - 1].totalNet || 0);
+                                                const isUp = diff >= 0;
                                                 return (
                                                     <>
                                                         <span className={`summary-value trend ${isUp ? 'up' : 'down'}`}>
@@ -373,7 +399,7 @@ export default function ChatInterface({ studentData }: ChatInterfaceProps) {
                                                 <p>Sıra: {studentData.recentExams[0].ranking?.toLocaleString()}</p>
                                             )}
                                             {studentData.recentExams[0].percentile && (
-                                                <p>%{studentData.recentExams[0].percentile}</p>
+                                                <p>Yüzdelik: %{studentData.recentExams[0].percentile}</p>
                                             )}
                                         </div>
                                     </div>
@@ -383,16 +409,16 @@ export default function ChatInterface({ studentData }: ChatInterfaceProps) {
                             {/* TÜM DERSLER - Genişletilmiş */}
                             {studentData.recentExams?.[0]?.subjectResults && (
                                 <div className="data-section all-subjects">
-                                    <h4>📚 Tüm Dersler ({studentData.recentExams[0].subjectResults.length} ders)</h4>
+                                    <h4>📚 Ders Başarısı</h4>
                                     <div className="subjects-list">
                                         {studentData.recentExams[0].subjectResults.map((s: any, idx: number) => (
                                             <div key={idx} className="subject-row">
                                                 <div className="subject-info">
                                                     <span className="subject-name">{s.subject}</span>
                                                     <span className="subject-stats">
-                                                        <span className="correct">✓{s.correct}</span>
-                                                        <span className="wrong">✗{s.wrong}</span>
-                                                        <span className="empty">○{s.empty}</span>
+                                                        <span className="correct">D:{s.correct}</span>
+                                                        <span className="wrong">Y:{s.wrong}</span>
+                                                        <span className="empty">B:{s.empty}</span>
                                                     </span>
                                                 </div>
                                                 <div className="subject-bar-container">
@@ -403,7 +429,7 @@ export default function ChatInterface({ studentData }: ChatInterfaceProps) {
                                                                 width: `${s.successRate}%`,
                                                                 background: s.successRate >= 80
                                                                     ? 'linear-gradient(90deg, #10b981, #34d399)'
-                                                                    : s.successRate >= 60
+                                                                    : s.successRate >= 50
                                                                         ? 'linear-gradient(90deg, #f59e0b, #fbbf24)'
                                                                         : 'linear-gradient(90deg, #ef4444, #f87171)'
                                                             }}
@@ -417,38 +443,10 @@ export default function ChatInterface({ studentData }: ChatInterfaceProps) {
                                 </div>
                             )}
 
-                            {/* Haftalık Sınav Timeline */}
-                            {studentData.recentExams && studentData.recentExams.length > 1 && (
-                                <div className="data-section exam-timeline">
-                                    <h4>📋 Sınav Geçmişi</h4>
-                                    <div className="timeline-list">
-                                        {studentData.recentExams.slice(0, 5).map((exam: any, idx: number) => {
-                                            const examDate = new Date(exam.date);
-                                            const today = new Date();
-                                            const diffDays = Math.floor((today.getTime() - examDate.getTime()) / (1000 * 60 * 60 * 24));
-                                            const dayLabel = diffDays === 0 ? 'Bugün' : diffDays === 1 ? 'Dün' : `${diffDays} gün önce`;
-
-                                            return (
-                                                <div key={idx} className="timeline-item">
-                                                    <div className="timeline-dot" />
-                                                    <div className="timeline-content">
-                                                        <span className="timeline-date">{dayLabel}</span>
-                                                        <span className="timeline-name">{exam.examName}</span>
-                                                        <span className={`timeline-net ${exam.examType === 'QUIZ' ? 'quiz' : ''}`}>
-                                                            {exam.totalNet?.toFixed(1)} net
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
                             {/* Çalışma İstatistikleri */}
                             {studentData.studyStats && (
                                 <div className="data-section">
-                                    <h4>⏱️ Çalışma</h4>
+                                    <h4>⏱️ Çalışma Alışkanlıkları</h4>
                                     <div className="stats-grid">
                                         <div className="stat-item">
                                             <span className="stat-val">{studentData.studyStats.averageDailyStudyMinutes}</span>
@@ -456,31 +454,16 @@ export default function ChatInterface({ studentData }: ChatInterfaceProps) {
                                         </div>
                                         <div className="stat-item">
                                             <span className="stat-val">🔥{studentData.studyStats.currentStreak}</span>
-                                            <span className="stat-lbl">Seri</span>
+                                            <span className="stat-lbl">Gün Seri</span>
                                         </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Öncelikli Konular - Genişletilmiş */}
-                            {studentData.topicPerformance && (
-                                <div className="data-section topics-section">
-                                    <h4>📈 Konu Durumu</h4>
-                                    <div className="topics-list">
-                                        {studentData.topicPerformance.slice(0, 6).map((t: any, i: number) => (
-                                            <div key={i} className="topic-row">
-                                                <div className="topic-info">
-                                                    <span className="topic-subject">{t.subject}</span>
-                                                    <span className="topic-name">{t.topic}</span>
-                                                </div>
-                                                <span
-                                                    className="topic-badge"
-                                                    style={{ background: getStatusColor(t.status) }}
-                                                >
-                                                    {getStatusLabel(t.status)}
-                                                </span>
-                                            </div>
-                                        ))}
+                                        <div className="stat-item">
+                                            <span className="stat-val">{studentData.studyStats.totalStudyTimeMinutes ? (studentData.studyStats.totalStudyTimeMinutes / 60).toFixed(0) : 0}</span>
+                                            <span className="stat-lbl">Toplam Saat</span>
+                                        </div>
+                                        <div className="stat-item">
+                                            <span className="stat-val">%{(studentData.studyStats.subjectDistribution?.[0]?.percentage || 0)}</span>
+                                            <span className="stat-lbl">Favori Ders</span>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -488,18 +471,25 @@ export default function ChatInterface({ studentData }: ChatInterfaceProps) {
                             {/* Güçlü/Zayıf */}
                             {studentData.strengthWeaknessAnalysis && (
                                 <div className="data-section sw-section">
-                                    {studentData.strengthWeaknessAnalysis.strengths?.[0] && (
-                                        <div className="sw-box strength">
+                                    <h4>⚡ Analiz</h4>
+                                    {studentData.strengthWeaknessAnalysis.strengths?.slice(0, 2).map((s: any, i: number) => (
+                                        <div key={`str-${i}`} className="sw-box strength">
                                             <span className="sw-icon">💪</span>
-                                            <span>{studentData.strengthWeaknessAnalysis.strengths[0].subject}</span>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontWeight: 600 }}>{s.subject}</span>
+                                                <span style={{ fontSize: '0.75rem' }}>Güçlü Yön</span>
+                                            </div>
                                         </div>
-                                    )}
-                                    {studentData.strengthWeaknessAnalysis.weaknesses?.[0] && (
-                                        <div className="sw-box weakness">
+                                    ))}
+                                    {studentData.strengthWeaknessAnalysis.weaknesses?.slice(0, 2).map((w: any, i: number) => (
+                                        <div key={`weak-${i}`} className="sw-box weakness">
                                             <span className="sw-icon">⚠️</span>
-                                            <span>{studentData.strengthWeaknessAnalysis.weaknesses[0].subject}</span>
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontWeight: 600 }}>{w.subject}</span>
+                                                <span style={{ fontSize: '0.75rem' }}>Gelişim Alanı ({w.priority === 'critical' ? 'Kritik' : 'Önemli'})</span>
+                                            </div>
                                         </div>
-                                    )}
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -516,7 +506,14 @@ export default function ChatInterface({ studentData }: ChatInterfaceProps) {
                             <button
                                 key={panel.id}
                                 className={`panel-tab ${activePanel === panel.id ? 'active' : ''}`}
-                                onClick={() => setActivePanel(panel.id)}
+                                onClick={() => {
+                                    setActivePanel(panel.id);
+                                    // Panel değişiminde modu zorla
+                                    if (panel.id === 'academic') setCurrentMod('academic');
+                                    else if (panel.id === 'emotional') setCurrentMod('safe-support');
+                                    else if (panel.id === 'growth') setCurrentMod('career-direction');
+                                    else if (panel.id === 'all') setCurrentMod(null); // Otomatik mod
+                                }}
                                 title={panel.description}
                             >
                                 <span className="panel-icon">{panel.icon}</span>
@@ -639,6 +636,8 @@ export default function ChatInterface({ studentData }: ChatInterfaceProps) {
                     exams={studentData.recentExams}
                     studyStats={studentData.studyStats}
                     onClose={() => setShowProgressChart(false)}
+                    studentGrade={studentData.grade || 12}
+                    targetExam={studentData.targetExam || 'YKS'}
                 />
             )}
 
